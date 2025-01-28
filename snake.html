@@ -1,143 +1,146 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Train Snake Game</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin-top: 20px;
-    }
-    h1 {
-      color: #333;
-    }
-    canvas {
-      border: 1px solid #000;
-      background-color: #f0f0f0;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Train Snake Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        canvas {
+            border: 1px solid #000;
+            background-color: #f0f0f0;
+        }
+    </style>
 </head>
 <body>
-  <h1>Train Snake Game</h1>
-  <canvas id="gameCanvas" width="400" height="400"></canvas>
-  <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
+    <h1>Train Snake Game</h1>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
 
-    const gridSize = 20;
-    const tileCount = canvas.width / gridSize;
+        const gridSize = 20;
+        const tileCount = canvas.width / gridSize;
 
-    let snake = [{ x: 10, y: 10 }]; // Initial train position
-    let food = { x: 5, y: 5 }; // Initial cargo position
-    let direction = { x: 0, y: 0 }; // Initial direction
-    let score = 0;
+        let snake = [{ x: 10, y: 10 }]; // Initial train position
+        let food = { x: 5, y: 5 }; // Initial cargo position
+        let direction = { x: 0, y: 0 }; // Initial direction
+        let score = 0;
 
-    // Load train images
-    const trainHead = new Image();
-    trainHead.src = 'https://img.icons8.com/color/48/000000/train.png'; // Locomotive
-    const trainBody = new Image();
-    trainBody.src = 'https://img.icons8.com/color/48/000000/train-car.png'; // Train car
+        // Load train images
+        const trainHead = new Image();
+        trainHead.src = 'https://img.icons8.com/color/48/000000/train.png'; // Locomotive
+        const trainBody = new Image();
+        trainBody.src = 'https://img.icons8.com/color/48/000000/train-car.png'; // Train car
 
-    // Draw the game elements
-    function draw() {
-      // Clear the canvas
-      ctx.fillStyle = '#f0f0f0';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // Draw the game elements
+        function draw() {
+            // Clear the canvas
+            ctx.fillStyle = '#f0f0f0';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Draw the train (snake)
-      snake.forEach((segment, index) => {
-        if (index === 0) {
-          // Draw the locomotive (head)
-          ctx.drawImage(trainHead, segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
-        } else {
-          // Draw the train cars (body)
-          ctx.drawImage(trainBody, segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+            // Draw the train (snake)
+            snake.forEach((segment, index) => {
+                if (index === 0) {
+                    // Draw the locomotive (head)
+                    ctx.drawImage(trainHead, segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+                } else {
+                    // Draw the train cars (body)
+                    ctx.drawImage(trainBody, segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+                }
+            });
+
+            // Draw the cargo (food)
+            ctx.fillStyle = 'red';
+            ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize, gridSize);
+
+            // Display the score
+            ctx.fillStyle = '#333';
+            ctx.font = '20px Arial';
+            ctx.fillText(`Cargo Collected: ${score}`, 10, 30);
         }
-      });
 
-      // Draw the cargo (food)
-      ctx.fillStyle = 'red';
-      ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize, gridSize);
+        // Update the game state
+        function update() {
+            // Move the train
+            const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
+            snake.unshift(head);
 
-      // Display the score
-      ctx.fillStyle = '#333';
-      ctx.font = '20px Arial';
-      ctx.fillText(`Cargo Collected: ${score}`, 10, 30);
-    }
+            // Check for cargo collision
+            if (head.x === food.x && head.y === food.y) {
+                score++;
+                placeFood();
+            } else {
+                // Remove the last car if no cargo is collected
+                snake.pop();
+            }
 
-    // Update the game state
-    function update() {
-      // Move the train
-      const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
-      snake.unshift(head);
+            // Check for collisions (walls or itself)
+            if (
+                head.x < 0 ||
+                head.x >= tileCount ||
+                head.y < 0 ||
+                head.y >= tileCount ||
+                snake.some(segment => segment.x === head.x && segment.y === head.y) 
+            ) {
+                resetGame();
+            }
+        }
 
-      // Check for cargo collision
-      if (head.x === food.x && head.y === food.y) {
-        score++;
+        // Place cargo at a random position
+        function placeFood() {
+            food.x = Math.floor(Math.random() * tileCount);
+            food.y = Math.floor(Math.random() * tileCount);
+
+            // Ensure cargo doesn't spawn on the train
+            if (snake.some(segment => segment.x === food.x && segment.y === food.y)) {
+                placeFood();
+            }
+        }
+
+        // Reset the game
+        function resetGame() {
+            snake = [{ x: 10, y: 10 }];
+            direction = { x: 0, y: 0 };
+            score = 0;
+            placeFood();
+        }
+
+        // Handle keyboard input
+        document.addEventListener('keydown', event => {
+            switch (event.key) {
+                case 'ArrowUp':
+                    if (direction.y === 0) direction = { x: 0, y: -1 };
+                    break;
+                case 'ArrowDown':
+                    if (direction.y === 0) direction = { x: 0, y: 1 };
+                    break;
+                case 'ArrowLeft':
+                    if (direction.x === 0) direction = { x: -1, y: 0 };
+                    break;
+                case 'ArrowRight':
+                    if (direction.x === 0) direction = { x: 1, y: 0 };
+                    break;
+            }
+        });
+
+        // Game loop
+        function gameLoop() {
+            update();
+            draw();
+            setTimeout(gameLoop, 100); // Adjust speed here
+        }
+
+        // Start the game
         placeFood();
-      } else {
-        snake.pop(); // Remove the last car if no cargo is collected
-      }
-
-      // Check for collisions (walls or itself)
-      if (
-        head.x < 0 || head.x >= tileCount ||
-        head.y < 0 || head.y >= tileCount ||
-        snake.slice(1).some(segment => segment.x === head.x && segment.y === head.y)
-      ) {
-        resetGame();
-      }
-    }
-
-    // Place cargo at a random position
-    function placeFood() {
-      food.x = Math.floor(Math.random() * tileCount);
-      food.y = Math.floor(Math.random() * tileCount);
-
-      // Ensure cargo doesn't spawn on the train
-      if (snake.some(segment => segment.x === food.x && segment.y === food.y)) {
-        placeFood();
-      }
-    }
-
-    // Reset the game
-    function resetGame() {
-      snake = [{ x: 10, y: 10 }];
-      direction = { x: 0, y: 0 };
-      score = 0;
-      placeFood();
-    }
-
-    // Handle keyboard input
-    document.addEventListener('keydown', event => {
-      switch (event.key) {
-        case 'ArrowUp':
-          if (direction.y === 0) direction = { x: 0, y: -1 };
-          break;
-        case 'ArrowDown':
-          if (direction.y === 0) direction = { x: 0, y: 1 };
-          break;
-        case 'ArrowLeft':
-          if (direction.x === 0) direction = { x: -1, y: 0 };
-          break;
-        case 'ArrowRight':
-          if (direction.x === 0) direction = { x: 1, y: 0 };
-          break;
-      }
-    });
-
-    // Game loop
-    function gameLoop() {
-      update();
-      draw();
-      setTimeout(gameLoop, 100); // Adjust speed here
-    }
-
-    // Start the game
-    placeFood();
-    gameLoop();
-  </script>
+        gameLoop();
+    </script>
 </body>
 </html>
