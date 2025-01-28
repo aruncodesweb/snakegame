@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Snake Game</title>
+  <title>Train Snake Game</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -20,7 +20,7 @@
   </style>
 </head>
 <body>
-  <h1>Snake Game</h1>
+  <h1>Train Snake Game</h1>
   <canvas id="gameCanvas" width="400" height="400"></canvas>
   <script>
     const canvas = document.getElementById('gameCanvas');
@@ -29,10 +29,16 @@
     const gridSize = 20;
     const tileCount = canvas.width / gridSize;
 
-    let snake = [{ x: 10, y: 10 }]; // Initial snake position
-    let food = { x: 5, y: 5 }; // Initial food position
+    let snake = [{ x: 10, y: 10 }]; // Initial train position
+    let food = { x: 5, y: 5 }; // Initial cargo position
     let direction = { x: 0, y: 0 }; // Initial direction
     let score = 0;
+
+    // Load train images
+    const trainHead = new Image();
+    trainHead.src = 'https://img.icons8.com/color/48/000000/train.png'; // Locomotive
+    const trainBody = new Image();
+    trainBody.src = 'https://img.icons8.com/color/48/000000/train-car.png'; // Train car
 
     // Draw the game elements
     function draw() {
@@ -40,37 +46,42 @@
       ctx.fillStyle = '#f0f0f0';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Draw the snake
-      ctx.fillStyle = 'green';
-      snake.forEach(segment => {
-        ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+      // Draw the train (snake)
+      snake.forEach((segment, index) => {
+        if (index === 0) {
+          // Draw the locomotive (head)
+          ctx.drawImage(trainHead, segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+        } else {
+          // Draw the train cars (body)
+          ctx.drawImage(trainBody, segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+        }
       });
 
-      // Draw the food
+      // Draw the cargo (food)
       ctx.fillStyle = 'red';
       ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize, gridSize);
 
       // Display the score
       ctx.fillStyle = '#333';
       ctx.font = '20px Arial';
-      ctx.fillText(`Score: ${score}`, 10, 30);
+      ctx.fillText(`Cargo Collected: ${score}`, 10, 30);
     }
 
     // Update the game state
     function update() {
-      // Move the snake
+      // Move the train
       const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
       snake.unshift(head);
 
-      // Check for food collision
+      // Check for cargo collision
       if (head.x === food.x && head.y === food.y) {
         score++;
         placeFood();
       } else {
-        snake.pop(); // Remove the tail if no food is eaten
+        snake.pop(); // Remove the last car if no cargo is collected
       }
 
-      // Check for collisions (walls or self)
+      // Check for collisions (walls or itself)
       if (
         head.x < 0 || head.x >= tileCount ||
         head.y < 0 || head.y >= tileCount ||
@@ -80,12 +91,12 @@
       }
     }
 
-    // Place food at a random position
+    // Place cargo at a random position
     function placeFood() {
       food.x = Math.floor(Math.random() * tileCount);
       food.y = Math.floor(Math.random() * tileCount);
 
-      // Ensure food doesn't spawn on the snake
+      // Ensure cargo doesn't spawn on the train
       if (snake.some(segment => segment.x === food.x && segment.y === food.y)) {
         placeFood();
       }
